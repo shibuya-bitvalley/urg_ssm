@@ -1,0 +1,243 @@
+#include "../include/LRF.hpp"
+#include "GNUctrl2.h"
+
+#include <cstdio>
+#include <iostream>
+#include <iostream>
+#include <math.h>
+
+#define GP_PATH "/usr/bin/gnuplot"
+#define URG_DIST 0.235
+#define URG_RIGHT_X 0.0
+#define URG_RIGHT_Y -0.235
+#define URG_RIGHT_TH -M_PI/2.0
+#define URG_LEFT_X 0.0
+#define URG_LEFT_Y 0.235
+#define URG_LEFT_TH M_PI/2.0
+
+FILE *gnu_p;	// Gnuplotへのパイプ用ポインタ
+
+void GNU_Init(void)
+{
+	// Gnuplotのオープン
+	gnu_p = popen(GP_PATH, "w");
+	fprintf(gnu_p, "set xrange [-5:5]\n");
+	fprintf(gnu_p, "set xlabel \"x[m]\"\n");
+	fprintf(gnu_p, "set yrange [-5:5]\n");
+	fprintf(gnu_p, "set ylabel \"y[m]\"\n");
+	fprintf(gnu_p, "set zrange [-5:5]\n");
+	fprintf(gnu_p, "set grid\n");
+	fprintf(gnu_p, "set size square\n");
+	//fprintf(gnu_p, "set terminal x11 size 400,400\n");
+	fprintf(gnu_p, "unset key\n");
+	//fprintf(gnu_p, "set view 0,45\n");
+}
+
+void GNU_Rotate(int deg)
+{
+	fprintf(gnu_p, "set view 0,%d\n", deg);
+}
+
+/*
+void GNU_Plot(LRF *urg_data)
+{
+	int i;
+
+	fprintf(gnu_p, "plot \"-\"\n");	// バッファ出力開始
+
+	// LRFの二次元座標データをバッファに出力
+	for (i = 0; i < 1081; i++)
+	{
+		fprintf(gnu_p, "%lf %lf\n", urg_data->x[i], urg_data->y[i]);
+	}
+	
+	fprintf(gnu_p, "e\n");	// バッファ出力終了
+	//fflush(gnu_p);			// Gnuplotに描画させる
+}
+*/
+
+void GNU_Plot12(LRF_ECHO *urg)
+{
+   int i;
+   
+   fprintf(gnu_p, "plot \"-\" w d \n");	// バッファ出力開始
+   
+   // LRFの二次元座標データをバッファに出力
+   for (i = -540; i < 540; i++)
+     {
+	//距離データをx,y座標に変換
+	double x = (double)(urg->dist[0].dist[i+540] * cos( (double)i / 720.0 * M_PI )) ;
+	double y = (double)(urg->dist[0].dist[i+540] * sin( (double)i / 720.0 * M_PI )) ;
+	//std::cout << x << "," << y << std::endl;
+	fprintf(gnu_p, "%lf %lf\n", x, y);
+     }
+   
+   fprintf(gnu_p, "e\n");	// バッファ出力終了
+   
+   /*
+   // LRFの二次元座標データをバッファに出力
+   for (int i = -540; i < 540; i++)
+     {
+	//距離データで補正した反射強度を算出
+	double intensity = (double)( (double)urg->intensity[0].intensity[i+540] * urg->dist[0].dist[i+540] / 1500.0);
+	//反射強度データをx,y座標に変換
+	double x_i = (double)(intensity * cos( (double)i/720.0*M_PI ));
+	double y_i = (double)(intensity * sin( (double)i/720.0*M_PI ));
+	
+	fprintf(gnu_p, "%lf %lf\n", x_i, y_i);
+     }
+ 
+   fprintf(gnu_p, "e\n");	// バッファ出力終了
+   */
+   
+   /*
+    * 
+    // LRFの二次元座標データをバッファに出力
+    for (int i = -540; i < 540; i++)
+    {
+    //距離データをx,y座標に変換
+    double x = (double)(urg->dist[1].dist[i+540] * cos( (double)i/720.0*M_PI )) ;
+    double y = (double)(urg->dist[1].dist[i+540] * sin( (double)i/720.0*M_PI )) ;
+    //std::cout << x << "," << y << std::endl;
+    fprintf(gnu_p, "%lf %lf\n", x, y);
+    printf("%lf %lf\n", x, y);
+    }
+    * 
+    fprintf(gnu_p, "e\n");	// バッファ出力終了
+    */
+   
+   fflush(gnu_p);			// Gnuplotに描画させる
+}
+
+void GNU_Plot_double(LRF_ECHO *Lurg, LRF_ECHO *Rurg){
+   
+   int i;
+   
+   fprintf(gnu_p, "plot \"-\" w d, \"-\" w d \n");	// バッファ出力開始
+   
+   // LRFの二次元座標データをバッファに出力
+   for (i = -540; i < 540; i++)
+     {
+	//右URGの距離データをx,y座標に変換
+	double xr = (double)(Rurg->dist[0].dist[i+540] * cos( (double)i / 720.0 * M_PI) + URG_DIST) ;
+	double yr = (double)(Rurg->dist[0].dist[i+540] * sin( (double)i / 720.0 * M_PI )) ;
+	
+	fprintf(gnu_p, "%lf %lf\n", xr, yr);
+     }
+   
+   fprintf(gnu_p, "e\n");	// バッファ出力終了
+   
+   for (i = -540; i < 540; i++)
+     {
+	//左URGの距離データをx,y座標に変換
+	double xl = (double)(Lurg->dist[0].dist[i+540] * cos( (double)i / 720.0 * M_PI ) + URG_DIST);
+	double yl = (double)(Lurg->dist[0].dist[i+540] * sin( (double)i / 720.0 * M_PI )) ;
+
+	fprintf(gnu_p, "%lf %lf\n", -xl, -yl);
+     }
+   
+   fprintf(gnu_p, "e\n");	// バッファ出力終了
+   
+   fflush(gnu_p);		// Gnuplotに描画させる
+}
+
+void GNU_Plot_hoge(LRF_ECHO *Lurg, LRF_ECHO *Rurg){
+   
+   int i;
+   
+   fprintf(gnu_p, "plot \"-\" w d, \"-\" w d \n");	// バッファ出力開始
+   
+   // LRFの二次元座標データをバッファに出力
+   for (i = -540; i < 540; i++)
+     {
+	//右URGの距離データをx,y座標に変換
+	double Pur = (double)(Rurg->dist[0].dist[i+540] * cos( (double)i / 720.0 * M_PI)) ;
+	double Pvr = (double)(Rurg->dist[0].dist[i+540] * sin( (double)i / 720.0 * M_PI)) ;
+	
+	double Pxr = URG_RIGHT_X + Pur * cos(URG_RIGHT_TH) - Pvr * sin(URG_RIGHT_TH);
+	double Pyr = URG_RIGHT_Y + Pur * sin(URG_RIGHT_TH) + Pvr * cos(URG_RIGHT_TH);
+	
+	fprintf(gnu_p, "%lf %lf\n", Pxr, Pyr);
+     }
+   
+   fprintf(gnu_p, "e\n");	// バッファ出力終了
+   
+   for (i = -540; i < 540; i++)
+     {
+	//左URGの距離データをx,y座標に変換
+	double Pul = (double)(Lurg->dist[0].dist[i+540] * cos( (double)i / 720.0 * M_PI ));
+	double Pvl = (double)(Lurg->dist[0].dist[i+540] * sin( (double)i / 720.0 * M_PI ));
+	
+	double Pxl = URG_LEFT_X + Pul * cos(URG_LEFT_TH) - Pvl * sin(URG_LEFT_TH);
+	double Pyl = URG_LEFT_Y + Pul * sin(URG_LEFT_TH) + Pvl * cos(URG_LEFT_TH);
+
+	fprintf(gnu_p, "%lf %lf\n", Pxl, Pyl);
+     }
+   
+   fprintf(gnu_p, "e\n");	// バッファ出力終了
+   
+   fflush(gnu_p);		// Gnuplotに描画させる
+}
+
+/*
+ void GNU_Plot2(int gnum, LRF *urg_data)
+ {
+ int i;
+ * 
+ fprintf(gnu_p, "set terminal x11 %d\n",gnum);	// バッファ出力開始
+ fprintf(gnu_p, "plot \"-\"\n");	// バッファ出力開始
+ * 
+ // LRFの二次元座標データをバッファに出力
+ for (i = 0; i < 682; i++)
+ {
+ fprintf(gnu_p, "%lf %lf\n", urg_data->x[i], urg_data->y[i]);
+ }
+ * 
+ fprintf(gnu_p, "e\n");	// バッファ出力終了
+ //fflush(gnu_p);			// Gnuplotに描画させる
+ }
+ */
+/*
+ void GNU_Plot2(int gnum, LRF *urg_data)
+ {
+ int i;
+ * 
+ fprintf(gnu_p, "set terminal x11 %d\n",gnum);	// バッファ出力開始
+ fprintf(gnu_p, "splot \"-\"\n");	// バッファ出力開始
+ * 
+ // LRFの二次元座標データをバッファに出力
+ for (i = 0; i < 1081; i++)
+ {
+ fprintf(gnu_p, "%lf %lf 0\n", urg_data->x[i], urg_data->y[i]);
+ }
+ * 
+ fprintf(gnu_p, "e\n");	// バッファ出力終了
+ * 
+ fprintf(gnu_p, "set label %d point pt 3 at 0,0,0\n",gnum);
+ //fflush(gnu_p);			// Gnuplotに描画させる
+ }
+ * 
+ void GNU_Point(int gnum, double x, double y, int num ,int style)
+ {
+ fprintf(gnu_p, "set terminal x11 %d\n",gnum);	// バッファ出力開始
+ fprintf(gnu_p, "set label %d point pt %d at %lf,%lf\n", num, style, x, y);
+ fflush(gnu_p);			// Gnuplotに描画させる
+ }
+ */
+
+/*void GNU_Replot(double x, double y)
+ {
+ fprintf(gnu_p, "set style line 1 lt 3\n");
+ fprintf(gnu_p, "lt 2 lc 1\n");	// バッファ出力開始
+ fprintf(gnu_p, "plot \"-\"\n");	// バッファ出力開始
+ fprintf(gnu_p, "%lf %lf\n", 1.0, 1.0);
+ fprintf(gnu_p, "e\n");	// バッファ出力終了
+ fflush(gnu_p);			// Gnuplotに描画させる
+ }
+ */
+
+
+void GNU_Close(void)
+{	
+   fclose(gnu_p);
+}

@@ -1,0 +1,8 @@
+
+all : LEFTssm2gnu.cpp RIGHTssm2gnu.cpp GNUctrl2.cpp ../include/LRF.hpp
+	g++ -o LEFTssm2gnu LEFTssm2gnu.cpp GNUctrl2.cpp -lm -lpthread -lssm
+	g++ -o RIGHTssm2gnu RIGHTssm2gnu.cpp GNUctrl2.cpp -lm -lpthread -lssm
+
+clean :
+	rm *.o
+

@@ -1,0 +1,37 @@
+OPT =  -I/usr/local/include/urg_c -lurg_c -lm -lssm
+
+all:urg2ssm urg2ssmFL urg2ssmCL urg2ssmRL urg2ssmFR urg2ssmCR urg2ssmRR urg2ssmC urg2ssmCE
+
+urg2ssm:urg2ssm_hokuyo.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyo urg2ssm_hokuyo.cpp $(OPT)
+
+urg2ssmFL:urg2ssm_hokuyoFL.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoFL urg2ssm_hokuyoFL.cpp $(OPT)
+
+urg2ssmCL:urg2ssm_hokuyoCL.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoCL urg2ssm_hokuyoCL.cpp $(OPT)
+
+urg2ssmRL:urg2ssm_hokuyoRL.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoRL urg2ssm_hokuyoRL.cpp $(OPT)
+	
+urg2ssmFR:urg2ssm_hokuyoFR.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoFR urg2ssm_hokuyoFR.cpp $(OPT)
+
+urg2ssmCR:urg2ssm_hokuyoCR.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoCR urg2ssm_hokuyoCR.cpp $(OPT)
+
+urg2ssmRR:urg2ssm_hokuyoRR.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoRR urg2ssm_hokuyoRR.cpp $(OPT)
+	
+urg2ssmRRE:urg2ssm_hokuyoRRE.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoRRE urg2ssm_hokuyoRRE.cpp $(OPT)
+
+urg2ssmC:urg2ssm_hokuyoC.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoC urg2ssm_hokuyoC.cpp $(OPT)
+	
+urg2ssmCE:urg2ssm_hokuyoCE.cpp ../../include/LRF.hpp
+	g++ -o urg2ssm_hokuyoCE urg2ssm_hokuyoCE.cpp $(OPT)
+
+clean:
+	rm *.o
+
